@@ -1,8 +1,11 @@
 import React, { Component } from 'react';
-import { messagesApi } from '../apiCalls'
+import { messagesApi } from '../../apiCalls'
+import ChatFooter from '../ChatFooter/ChatFooter';
+import Message from '../Message/Message';
 import './Chat.css';
 
 class Chat extends Component {
+  // since aplication is small the easiest way is to store data in a classic way in the state
   state = {
     // using object instead of array to avoid duplicates on messages merging
     messages: {},
@@ -46,7 +49,7 @@ class Chat extends Component {
       .catch(error => this.setState({ error }))
   };
  
-  handleChange = (event) => {
+  handleInputChange = (event) => {
     this.setState({ draft: event.target.value });
   };
 
@@ -66,8 +69,6 @@ class Chat extends Component {
         .catch(error => this.setState({ error, sendingMessage: false }))
     )
   };
-
-  dateToMessageStringTime = (time) => time.toTimeString().split(' ')[0];
 
   getMessagesIdsWithAvatars = (reversedMessages) => {
     const { conversationalistId, userId } = this.props;
@@ -98,34 +99,23 @@ class Chat extends Component {
           <img className="Avatar" src={conversationalistAvatarUrl} alt='avatar' />
           <span>{ chatTitle }</span>
         </div>
-        <div className="Mesages-reversed-contener">
-          {loading && <span>Loading...</span>}
-          {!loading && (
-            reversedMessages.map(message => (
-              <div className={userId === message.senderId ? "Message-right" : "Message-left"}>
-                {messagesIdsWithAvatars.includes(message.messageId) ?
-                  <img className="Avatar" src={conversationalistAvatarUrl} alt='avatar' /> : <div className="Avatar" />
-                }
-                <div className="Message-body">
-                  <p className="Message-text">
-                    {message.text}
-                  </p>
-                  <p className="Message-time">
-                    {this.dateToMessageStringTime(message.sentTime)}
-                  </p>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-        <div className="Input-container">
-          <textarea className="Message-input"
-            rows={4}
-            value={draft}
-            onChange={this.handleChange}
-          />
-          <button disabled={!draft || sendingMessage} onClick={this.sendMessage}>Send</button>
-        </div>
+        <ul className="Mesages-reversed-contener">
+          {loading && <li>Loading...</li>}
+          {!loading && (reversedMessages.map(message =>
+            <Message
+              message={ message }
+              messagesIdsWithAvatars={messagesIdsWithAvatars}
+              userId={userId}
+              conversationalistAvatarUrl={conversationalistAvatarUrl}
+            />
+          ))}
+        </ul>
+        <ChatFooter
+          draft={draft}
+          sendMessage={this.sendMessage}
+          sendingMessage={sendingMessage}
+          handleChange={this.handleInputChange}
+        />
       </div>
     );
   }
